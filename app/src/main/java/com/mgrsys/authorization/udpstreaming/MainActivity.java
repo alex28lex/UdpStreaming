@@ -1,15 +1,15 @@
 package com.mgrsys.authorization.udpstreaming;
 
 import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -25,10 +25,12 @@ public class MainActivity extends AppCompatActivity {
 
     MulticastSocket multicastSocket;
     InetAddress group;
-    Handler mainHandler;
 
-    AudioFormat audioFormat;
-    int sampleRate = 44100;
+    private AudioTrack track;
+    private static final int SAMPLE_RATE = 48000; // Hertz
+    private static final int SAMPLE_INTERVAL = 20; // Milliseconds
+    private static final int SAMPLE_SIZE = 2; // Bytes
+    private static final int BUF_SIZE = SAMPLE_INTERVAL * SAMPLE_INTERVAL * SAMPLE_SIZE * 2; //Bytes
 
 
     @Override
@@ -47,34 +49,46 @@ public class MainActivity extends AppCompatActivity {
 
 
     void runMulticast() {
-/*        new Thread() {
+        new Thread() {
             @Override
-            public void run() {*/
-        try {
-            byte[] buffer = new byte[3584];
-            DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
-            group = InetAddress.getByName(addressText.getText().toString());
-            multicastSocket = new MulticastSocket(Integer.valueOf(portText.getText().toString()));
-            multicastSocket.joinGroup(group);
-            while (true) {
-                multicastSocket.receive(datagramPacket);
-                ByteArrayInputStream baiss = new ByteArrayInputStream(
-                        datagramPacket.getData());
+            public void run() {
+                try {
+                    byte[] buffer = new byte[BUF_SIZE];//mb 3584 better?
 
-                String ip = datagramPacket.getAddress().getHostAddress();
-                String message = new String(buffer, 0, datagramPacket.getLength());
-                Log.d("MyApp", ip + ": " + message);
+
+                    track = new AudioTrack(AudioManager.STREAM_MUSIC, SAMPLE_RATE, AudioFormat.CHANNEL_IN_STEREO,
+                            AudioFormat.ENCODING_PCM_16BIT, BUF_SIZE, AudioTrack.MODE_STREAM);
+                    track.play();
+
+                    // Define a socket to receive the audio
+                    DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
+                    group = InetAddress.getByName(addressText.getText().toString());
+                    multicastSocket = new MulticastSocket(Integer.valueOf(portText.getText().toString()));
+                    multicastSocket.joinGroup(group);
+
+                    while (true) {
+                        multicastSocket.receive(datagramPacket);
+                        track.write(datagramPacket.getData(), 0, BUF_SIZE);
+                        String ip = datagramPacket.getAddress().getHostAddress();
+                        String message = new String(buffer, 0, datagramPacket.getLength());
+                        Log.d("MyApp", ip + ": " + message);
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        //}
-        /*   }.start();*/
+        }.start();
     }
 
     void stopMulticast() {
         try {
             multicastSocket.leaveGroup(group);
+            multicastSocket.disconnect();
+            multicastSocket.close();
+            track.stop();
+            track.flush();
+            track.release();
         } catch (IOException e) {
             e.printStackTrace();
         }
