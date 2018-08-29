@@ -33,7 +33,7 @@
             android:background="@drawable/round_edittext"
             android:hint="Address"
             android:padding="8dp"
-            android:text="udp://239.10.10.1:1234" />
+           />
 
         <EditText
             android:id="@+id/buffer"
