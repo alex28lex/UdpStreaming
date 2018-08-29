@@ -14,6 +14,14 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:text="Address e.g. udp://239.10.10.1:1234"
+            android:textColor="@android:color/white" />
+
         <EditText
             android:id="@+id/address"
             android:layout_width="match_parent"
@@ -23,9 +31,9 @@
             android:layout_marginRight="8dp"
             android:layout_marginTop="16dp"
             android:background="@drawable/round_edittext"
-            android:hint="Address e.g. udp://239.10.10.1:1234"
+            android:hint="Address"
             android:padding="8dp"
-            android:text="udp://@239.10.10.1:1234" />
+            android:text="udp://239.10.10.1:1234" />
 
         <EditText
             android:id="@+id/buffer"
@@ -38,14 +46,21 @@
             android:hint="Buffer "
             android:padding="8dp"
             android:visibility="gone" />
+
+        <Button
+            android:id="@+id/initStream"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Init stream" />
     </LinearLayout>
 
     <com.google.android.exoplayer2.ui.SimpleExoPlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:show_timeout="0"
+        android:layout_below="@+id/controls"
         app:hide_on_touch="false"
-        android:layout_below="@+id/controls" />
+        app:show_timeout="0" />
 
 </RelativeLayout>

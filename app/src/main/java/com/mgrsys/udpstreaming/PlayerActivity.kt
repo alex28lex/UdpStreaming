@@ -3,6 +3,8 @@ package com.mgrsys.udpstreaming
 import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -24,6 +26,12 @@ class PlayerActivity : AppCompatActivity(), TransferListener<UdpDataSource> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video_player)
         shouldAutoPlay = true
+        findViewById<Button>(R.id.initStream).setOnClickListener(View.OnClickListener {
+            releasePlayer()
+            initPlayer()
+            KeyboardUtil.hideKeyboard(findViewById<Button>(R.id.initStream))
+        })
+
     }
 
     private fun initPlayer() {
@@ -69,8 +77,11 @@ class PlayerActivity : AppCompatActivity(), TransferListener<UdpDataSource> {
 
     // Activity
     private fun releasePlayer() {
-        player.release()
-        shouldAutoPlay = player.playWhenReady
+        if (::player.isInitialized) {
+            player.release()
+            shouldAutoPlay = player.playWhenReady
+        }
+
     }
 
     override fun onStart() {
@@ -79,7 +90,7 @@ class PlayerActivity : AppCompatActivity(), TransferListener<UdpDataSource> {
 
     override fun onResume() {
         super.onResume()
-        initPlayer()
+        // initPlayer()
     }
 
     override fun onPause() {
