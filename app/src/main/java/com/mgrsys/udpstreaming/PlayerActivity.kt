@@ -6,6 +6,10 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.DefaultLoadControl
+import com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_MAX_BUFFER_MS
+import com.google.android.exoplayer2.DefaultLoadControl.DEFAULT_MIN_BUFFER_MS
 import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
@@ -16,6 +20,7 @@ import com.google.android.exoplayer2.ui.SimpleExoPlayerView
 import com.google.android.exoplayer2.upstream.*
 import com.mgrsys.authorization.udpstreaming.R
 
+
 class PlayerActivity : AppCompatActivity(), TransferListener<UdpDataSource> {
 
     private lateinit var player: SimpleExoPlayer
@@ -24,12 +29,24 @@ class PlayerActivity : AppCompatActivity(), TransferListener<UdpDataSource> {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_video_player)
+        setContentView(R.layout.activity_player)
         shouldAutoPlay = true
         findViewById<Button>(R.id.initStream).setOnClickListener(View.OnClickListener {
             releasePlayer()
             initPlayer()
             KeyboardUtil.hideKeyboard(findViewById<Button>(R.id.initStream))
+        })
+        findViewById<Button>(R.id.stopStream).setOnClickListener(View.OnClickListener {
+            releasePlayer()
+            KeyboardUtil.hideKeyboard(findViewById<Button>(R.id.stopStream))
+        })
+        findViewById<View>(R.id.clearUdpView).setOnClickListener(View.OnClickListener {
+            releasePlayer()
+            findViewById<EditText>(R.id.address).setText("")
+        })
+        findViewById<View>(R.id.clearBufferView).setOnClickListener(View.OnClickListener {
+            releasePlayer()
+            findViewById<EditText>(R.id.buffer).setText("")
         })
 
     }
@@ -43,7 +60,11 @@ class PlayerActivity : AppCompatActivity(), TransferListener<UdpDataSource> {
         val bandwidthMeter = DefaultBandwidthMeter()
         val trackSelectionFactory = AdaptiveTrackSelection.Factory(bandwidthMeter)
         val trackSelector = DefaultTrackSelector(trackSelectionFactory)
+        val allocator = DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE)
+        val bufSize = findViewById<EditText>(R.id.buffer).text.toString()
 
+// Here
+        val loadControl = DefaultLoadControl(allocator, DEFAULT_MIN_BUFFER_MS, DEFAULT_MAX_BUFFER_MS, Integer.valueOf(bufSize), Integer.valueOf(bufSize), -1, true)
         // Here we setup UdpDataSource
         // This part will probably need to setup TransferListener (might be implemented by this class itself
         // This listener is pass as 2nd argument to DefaultDataSourceFactory as well as to UdpDataSource
@@ -55,7 +76,7 @@ class PlayerActivity : AppCompatActivity(), TransferListener<UdpDataSource> {
 
         // Main initialization side-effects
         simpleExoPlayerView.requestFocus()
-        player = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
+        player = ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl)
         player.prepare(mediaSource)
         player.playWhenReady = shouldAutoPlay;
         simpleExoPlayerView.player = player
