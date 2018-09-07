@@ -8,14 +8,12 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
-import com.google.android.exoplayer2.SimpleExoPlayer;
 
 @SuppressWarnings("unused")
 public final class KeyboardUtil {
 
     public static void showKeyboard(@NonNull View editTextView) {
         editTextView.requestFocus();
-        SimpleExoPlayer simpleExoPlayer;
         Context context = editTextView.getContext();
         InputMethodManager inputMethodManager =
                 (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
